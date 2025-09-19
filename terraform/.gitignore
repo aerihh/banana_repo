@@ -1,7 +1,7 @@
 # Carpetas y archivos generados por Terraform
 .terraform/
 .terraform.lock.hcl
-.\terraform\.terraform
+.terraform/.terraform
 
 # Archivos de estado (NO deben ir a Git, contienen info sensible)
 *.tfstate
