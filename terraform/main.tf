@@ -41,14 +41,14 @@ resource "azurerm_subnet" "subnet_web" {
   name                 = "subnet-web"
   resource_group_name  = azurerm_resource_group.hf_rg
   virtual_network_name = azurerm_virtual_network.hf_vnet
-  address_prefixes     = ["10.0.11.0/24"]
+  address_prefixes     = ["10.0.2.0/24"]
 }
 
 resource "azurerm_subnet" "subnet_db" {
   name                 = "subnet-db"
   resource_group_name  = azurerm_resource_group.hf_rg
   virtual_network_name = azurerm_virtual_network.hf_vnet
-  address_prefixes     = ["10.0.21.0/24"]
+  address_prefixes     = ["10.0.3.0/24"]
 }
 
 
