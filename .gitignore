@@ -1,0 +1,24 @@
+# Carpetas y archivos generados por Terraform
+.terraform/
+.terraform.lock.hcl
+
+# Archivos de estado (NO deben ir a Git, contienen info sensible)
+*.tfstate
+*.tfstate.*
+crash.log
+
+# Variables sensibles
+terraform.tfvars
+*.auto.tfvars
+
+# Archivos de override (usados localmente)
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Archivos de salida de plan (binarios)
+*.plan
+
+# Archivos de backup
+*.backup
