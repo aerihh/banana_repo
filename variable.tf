@@ -7,7 +7,7 @@ variable "subscription_id"{
   default = "98f81224-226a-46f0-b9b7-34bded3c97d2"
 }
 
-variable "resource_group_name" {
+variable "rg_name" {
   default = "rg-healthfast"
 }
 
@@ -25,8 +25,16 @@ variable "address_space" {
 
 variable "subnets" {
   default = {
-    web = "10.0.1.0/24"
-    app = "10.0.2.0/24"
-    db  = "10.0.3.0/24"
+    web = ["10.0.1.0/24"]
+    app = ["10.0.2.0/24"]
+    db  = ["10.0.3.0/24"]
+  }
+}
+
+variable "subnet_names" {
+  default = {
+    web = "subnet_web"
+    app = "subnet_app"
+    db = "subnet_db"
   }
 }
