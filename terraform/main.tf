@@ -18,8 +18,8 @@ locals {
 
 provider "azurerm" {
   # Configuration options
-  tenant_id = var.tenant_id
-  subscription_id = var.subscription_id
+  tenant_id = "17aa4ddc-a9ef-4a6c-9687-8572044513ac"
+  subscription_id = "98f81224-226a-46f0-b9b7-34bded3c97d2"
   features {
   }
 }
@@ -28,6 +28,7 @@ resource "azurerm_resource_group" "health_fast_rg" {
   name = var.rg_name
   location = var.location
 }
+
 
 #Configuracion de la red virtual
 resource "azurerm_virtual_network" "hf_vnet" {
