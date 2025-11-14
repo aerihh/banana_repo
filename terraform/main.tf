@@ -1,51 +1,107 @@
 terraform {
   required_providers {
     azurerm = {
-      source = "hashicorp/azurerm"
-      version = "4.44.0"
+      source  = "hashicorp/azurerm"
+      version = "~> 4.0"
     }
   }
-}
-
-locals {
-  combined_subnet = [
-    for k, v in var.subnet_names : {
-      sn_n = v
-      sn_a = var.subnets[k]
-    }
-  ]
 }
 
 provider "azurerm" {
-  # Configuration options
   tenant_id = var.tenant_id
   subscription_id = var.subscription_id
-  features {
-  }
+  features {}
 }
 
+# ==========================
+#  Resource Group
+# ==========================
 resource "azurerm_resource_group" "health_fast_rg" {
-  name = var.rg_name
+  name     = var.resource_group_name
   location = var.location
 }
 
-#Configuracion de la red virtual
-resource "azurerm_virtual_network" "hf_vnet" {
+# ==========================
+#  Virtual Network
+# ==========================
+resource "azurerm_virtual_network" "health_fast_vnet" {
+  name                = var.vnet_name
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.health_fast_rg.location
   resource_group_name = azurerm_resource_group.health_fast_rg.name
-  name = var.vnet_name
-  location = var.location
-  address_space = var.address_space
 }
 
-#3 subnets para cada end point api, db y web
-resource "azurerm_subnet" "subnet_vnet" {
-  for_each = { for idx, val in local.combined_subnet : idx => val }
-  name = each.value.sn_n
+# ==========================
+#  Subnets
+# ==========================
+resource "azurerm_subnet" "subnets" {
+  for_each             = var.subnets
+  name                 = each.key
   resource_group_name  = azurerm_resource_group.health_fast_rg.name
-  virtual_network_name = azurerm_virtual_network.hf_vnet.name
-  address_prefixes = each.value.sn_a
+  virtual_network_name = azurerm_virtual_network.health_fast_vnet.name
+  address_prefixes     = each.value.address_prefixes
 }
 
+# ==========================
+#  Network Security Groups
+# ==========================
+resource "azurerm_network_security_group" "nsgs" {
+  for_each            = var.nsgs
+  name                = each.key
+  location            = azurerm_resource_group.health_fast_rg.location
+  resource_group_name = azurerm_resource_group.health_fast_rg.name
+}
 
-#FALTA DECLARAR UN NSG PARA LA SEGURIDAD DE LAS REDES
+# ==========================
+#  NSG Rules
+# ==========================
+locals {
+  nsg_combined = flatten([
+    for nsg_name, nsg in var.nsgs : [
+      for rule in nsg.rules : {
+        nsg_name = nsg_name
+        rule     = rule
+      }
+    ]
+  ])
+}
 
+resource "azurerm_network_security_rule" "rules" {
+  for_each = {
+    for combo in local.nsg_combined : "${combo.nsg_name}-${combo.rule.name}" => combo
+  }
+
+  name                        = each.value.rule.name
+  priority                    = each.value.rule.priority
+  direction                   = each.value.rule.direction
+  access                      = each.value.rule.access
+  protocol                    = each.value.rule.protocol
+  source_port_range           = each.value.rule.source_port_range
+  source_address_prefix       = each.value.rule.source_address_prefix
+  destination_address_prefix  = each.value.rule.destination_address_prefix
+  resource_group_name         = azurerm_resource_group.health_fast_rg.name
+  network_security_group_name = each.value.nsg_name
+
+  # ✅ Lógica robusta para manejar uno o varios puertos
+  destination_port_range = (
+    try(length(each.value.rule.destination_port_ranges), 0) > 0 ?
+    null :
+    each.value.rule.destination_port_range
+  )
+
+  destination_port_ranges = (
+    try(length(each.value.rule.destination_port_ranges), 0) > 0 ?
+    each.value.rule.destination_port_ranges :
+    null
+  )
+}
+
+# ==========================
+#  Asociación NSG <-> Subnet
+# ==========================
+resource "azurerm_subnet_network_security_group_association" "assoc" {
+  for_each = var.subnet_nsg_associations
+
+  subnet_id                 = azurerm_subnet.subnets[each.value.subnet].id
+  network_security_group_id = azurerm_network_security_group.nsgs[each.value.nsg].id
+}
