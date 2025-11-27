@@ -58,66 +58,6 @@ variable "nsgs" {
       destination_address_prefix  = string
     }))
   }))
-  default = {
-    web = {
-      rules = [
-        {
-          name                       = "Allow-HTTP"
-          priority                   = 100
-          direction                  = "Inbound"
-          access                     = "Allow"
-          protocol                   = "Tcp"
-          source_port_range           = "*"
-          destination_port_range      = "80"
-          source_address_prefix       = "*"
-          destination_address_prefix  = "*"
-        },
-        {
-          name                       = "Allow-HTTPS"
-          priority                   = 110
-          direction                  = "Inbound"
-          access                     = "Allow"
-          protocol                   = "Tcp"
-          source_port_range           = "*"
-          destination_port_range      = "443"
-          source_address_prefix       = "*"
-          destination_address_prefix  = "*"
-        }
-      ]
-    }
-
-    app = {
-      rules = [
-        {
-          name                       = "Allow-AppPorts"
-          priority                   = 100
-          direction                  = "Inbound"
-          access                     = "Allow"
-          protocol                   = "Tcp"
-          source_port_range           = "*"
-          destination_port_ranges     = ["8080", "8443"]
-          source_address_prefix       = "*"
-          destination_address_prefix  = "*"
-        }
-      ]
-    }
-
-    db = {
-      rules = [
-        {
-          name                       = "Allow-SQL"
-          priority                   = 100
-          direction                  = "Inbound"
-          access                     = "Allow"
-          protocol                   = "Tcp"
-          source_port_range           = "*"
-          destination_port_range      = "1433"
-          source_address_prefix       = "*"
-          destination_address_prefix  = "*"
-        }
-      ]
-    }
-  }
 }
 
 variable "subnet_nsg_associations" {
@@ -140,4 +80,12 @@ variable "subnet_nsg_associations" {
       nsg    = "db"
     }
   }
+}
+
+variable "vm_admin_username" {
+  default = "azureuser"
+}
+
+variable "vm_admin_ssh_key" {
+  description = "Public SSH key"
 }
