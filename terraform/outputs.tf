@@ -17,3 +17,11 @@ output "network_security_groups" {
 output "nsg_rules" {
   value = { for k, v in azurerm_network_security_rule.rules : k => v.name }
 }
+
+output "app_nic" {
+  value = azurerm_network_interface.app_nic.ip_configuration
+}
+
+output "web_nic" {
+  value = azurerm_network_interface.web_nic.ip_configuration
+}
